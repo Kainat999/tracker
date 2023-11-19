@@ -7,6 +7,7 @@ function Dashboard() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [elapsedTimeChunks, setElapsedTimeChunks] = useState([]);
   const [records, setRecords] = useState([]);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,6 +22,7 @@ function Dashboard() {
         });
 
         if (response.data && response.data.records) {
+          setUser(response.data.user);
           setElapsedTimeChunks(response.data.elapsedTimeChunks || []);
           setRecords(response.data.records || []);
         } else {
@@ -58,10 +60,17 @@ function Dashboard() {
         const chunk = currentTime - startTime;
 
         try {
+          const token = localStorage.getItem('token');
+          
           await axios.post('http://localhost:8000/api/dashboard/', {
-            start_time: startTime.toISOString(),
-            end_time: currentTime.toISOString(),
+            start_time: new Date(startTime).toISOString(),
+            end_time: new Date(currentTime).toISOString(),
             elapsedTime: chunk,
+            user: user.id,
+          }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           });
 
           const updatedData = {
@@ -85,6 +94,7 @@ function Dashboard() {
 
   const handleReset = async () => {
     try {
+      const token = localStorage.getItem('token');
       await axios.delete('http://localhost:8000/api/dashboard/');
       setElapsedTimeChunks([]);
       setStartTime(null);
@@ -106,10 +116,16 @@ function Dashboard() {
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
   };
 
-  const getTotalTime = () => {
-    const totalMilliseconds = elapsedTimeChunks.reduce((total, chunk) => total + chunk, 0);
-    return formatTime(totalMilliseconds);
+  const formatDateTime = (dateTimeString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' };
+    return new Date(dateTimeString).toLocaleString(undefined, options);
   };
+  
+
+  const getTotalTime = () => {
+    const totalMilliseconds = elapsedTime + elapsedTimeChunks.reduce((total, chunk) => total + chunk, 0);
+    return formatTime(totalMilliseconds);
+  };  
 
   return (
     <div>
@@ -132,7 +148,7 @@ function Dashboard() {
         <ul>
           {(records || []).map((record, index) => (
             <li key={index}>
-              Start Time: {record.start_time}, End Time: {record.end_time || 'Not available'}
+              Start Time: {formatDateTime(record.start_time)}, End Time: {record.end_time ? formatDateTime(record.end_time) : 'Not available'}
             </li>
           ))}
         </ul>
@@ -142,3 +158,7 @@ function Dashboard() {
 }
 
 export default Dashboard;
+
+
+
+
