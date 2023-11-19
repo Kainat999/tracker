@@ -13,6 +13,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import SlidingToken
+from datetime import timedelta
+
 
 @csrf_exempt
 @api_view(['POST', 'GET'])
@@ -56,21 +58,32 @@ def login_view(request):
 @api_view(['GET', 'POST', 'DELETE'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
+
+
 def dashboard(request):
     if request.method == 'GET':
         user = request.user
         records = TrackerRecord.objects.filter(user=user).order_by('-start_time')
+        
+        elapsedTimeChunks = []
+        for record in records:
+            if record.end_time:
+                elapsedTimeChunks.append(record.end_time - record.start_time)
+        
         serializer = TrackerRecordSerializer(records, many=True)
+
+
 
         user_data = {
             'id': user.id,
             'username': user.username,
         }
 
+
         response_data = {
             'user': user_data,
             'records': serializer.data,
-            'elapsedTimeChunks': [], 
+            'elapsedTimeChunks': [str(chunk) for chunk in elapsedTimeChunks],  
         }
 
         return Response(response_data)
@@ -81,3 +94,5 @@ def dashboard(request):
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'DELETE':
+        return Response(status=status.HTTP_204_NO_CONTENT)
