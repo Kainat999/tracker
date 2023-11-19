@@ -1,0 +1,84 @@
+/* dashboard.css */
+
+.dashboard-container {
+  font-family: 'Arial', sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  color: #333;
+}
+
+.dashboard-controls {
+  margin-bottom: 20px;
+}
+
+.control-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  margin-right: 10px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.control-button.start {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.control-button.stop {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
+.control-button.reset {
+  background-color: #3498db;
+  color: #fff;
+}
+
+.dashboard-timer {
+  background-color: #fff;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.dashboard-timer p, .dashboard-timer li {
+  font-size: 18px;
+  margin: 0 0 10px;
+}
+
+.dashboard-records {
+  background-color: #fff;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.dashboard-records h2 {
+  color: #333;
+}
+
+.dashboard-records li {
+  font-size: 16px;
+  margin-bottom: 10px;
+  list-style: none;
+}
+
+.dashboard-records li:before {
+  content: '\2022'; /* Bullet point */
+  color: #3498db;
+  font-weight: bold;
+  display: inline-block;
+  width: 1em;
+  margin-left: -1em;
+}

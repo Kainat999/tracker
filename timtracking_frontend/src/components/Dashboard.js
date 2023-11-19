@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './dashboard.css';
 
 function Dashboard() {
   const [isRunning, setIsRunning] = useState(false);
@@ -63,7 +64,7 @@ function Dashboard() {
           const token = localStorage.getItem('token');
           
           await axios.post('http://localhost:8000/api/dashboard/', {
-            start_time: new Date(startTime).toISOString(),
+            start_time: startTime.toISOString(),
             end_time: new Date(currentTime).toISOString(),
             elapsedTime: chunk,
             user: user.id,
@@ -95,7 +96,11 @@ function Dashboard() {
   const handleReset = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete('http://localhost:8000/api/dashboard/');
+      await axios.delete('http://localhost:8000/api/dashboard/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setElapsedTimeChunks([]);
       setStartTime(null);
       setElapsedTime(0);
@@ -124,26 +129,30 @@ function Dashboard() {
 
   const getTotalTime = () => {
     const totalMilliseconds = elapsedTime + elapsedTimeChunks.reduce((total, chunk) => total + chunk, 0);
-    return formatTime(totalMilliseconds);
+    return totalMilliseconds;
   };  
 
   return (
-    <div>
+    <div className="dashboard-container">
       <h1>Combined Dashboard</h1>
-      <div>
-        <button onClick={handleStartStop}>{isRunning ? 'Stop' : 'Start'}</button>
-        <button onClick={handleReset}>Reset</button>
+      <div className="dashboard-controls">
+        <button onClick={handleStartStop} className={`control-button ${isRunning ? 'stop' : 'start'}`}>
+          {isRunning ? 'Stop' : 'Start'}
+        </button>
+        <button onClick={handleReset} className="control-button reset">
+          Reset
+        </button>
       </div>
-      <div>
+      <div className="dashboard-timer">
         <p>Elapsed Time: {formatTime(elapsedTime)}</p>
         <ul>
           {(elapsedTimeChunks || []).map((chunk, index) => (
-            <li key={index}>Chunk {index + 1}: {formatTime(chunk)}</li>
+            <li key={index}>Chunk {index + 1}: {chunk}</li>
           ))}
         </ul>
         <p>Total Time: {getTotalTime()}</p>
       </div>
-      <div>
+      <div className="dashboard-records">
         <h2>Tracker Records</h2>
         <ul>
           {(records || []).map((record, index) => (
@@ -156,7 +165,6 @@ function Dashboard() {
     </div>
   );
 }
-
 export default Dashboard;
 
 
