@@ -70,7 +70,7 @@ def dashboard(request):
         response_data = {
             'user': user_data,
             'records': serializer.data,
-            'elapsedTimeChunks': [],  # You can populate this based on your logic
+            'elapsedTimeChunks': [], 
         }
 
         return Response(response_data)
