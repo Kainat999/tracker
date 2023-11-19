@@ -64,7 +64,7 @@ function Dashboard() {
           const token = localStorage.getItem('token');
           
           await axios.post('http://localhost:8000/api/dashboard/', {
-            start_time: startTime.toISOString(),
+            start_time: new Date(startTime).toISOString(),
             end_time: new Date(currentTime).toISOString(),
             elapsedTime: chunk,
             user: user.id,
@@ -76,7 +76,7 @@ function Dashboard() {
 
           const updatedData = {
             elapsedTimeChunks: [...elapsedTimeChunks, chunk],
-            records: [...records, { start_time: startTime.toISOString(), end_time: currentTime.toISOString() }],
+            records: [...records, { start_time: new Date(startTime).toISOString(), end_time: new Date(currentTime).toISOString() }],
           };
 
           setElapsedTimeChunks(updatedData.elapsedTimeChunks);
