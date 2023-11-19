@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from .models import TrackerRecord, Profile
 from rest_framework.authtoken.models import Token
@@ -11,7 +11,8 @@ from .serializers import TrackerRecordSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import SlidingToken
 
 @csrf_exempt
 @api_view(['POST', 'GET'])
@@ -35,7 +36,7 @@ def register(request):
 
 
 
-@csrf_exempt
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
@@ -45,27 +46,36 @@ def login_view(request):
     user = authenticate(request, username=username, password=password)
 
     if user is not None:
-        login(request, user)
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key, 'message': 'Login successful'})
+        token = SlidingToken.for_user(user)
+        return Response({'token': str(token), 'message': 'Login successful'})
     else:
         return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
 
 
-
 @api_view(['GET', 'POST', 'DELETE'])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def dashboard(request):
-    
-    print(request.headers)
     if request.method == 'GET':
-        records = TrackerRecord.objects.filter(user=request.user).order_by('-start_time')
+        user = request.user
+        records = TrackerRecord.objects.filter(user=user).order_by('-start_time')
         serializer = TrackerRecordSerializer(records, many=True)
-        return Response({'records': serializer.data})
+
+        user_data = {
+            'id': user.id,
+            'username': user.username,
+        }
+
+        response_data = {
+            'user': user_data,
+            'records': serializer.data,
+            'elapsedTimeChunks': [],  # You can populate this based on your logic
+        }
+
+        return Response(response_data)
 
     elif request.method == 'POST':
-
         serializer = TrackerRecordSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
