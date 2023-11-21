@@ -10,29 +10,32 @@ function Dashboard() {
   const [records, setRecords] = useState([]);
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        console.log('Token:', token);
 
-        const response = await axios.get('http://localhost:8000/api/dashboard/', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
 
-        if (response.data && response.data.records) {
-          setUser(response.data.user);
-          setElapsedTimeChunks(response.data.elapsedTimeChunks || []);
-          setRecords(response.data.records || []);
-        } else {
-          console.error('Invalid response format:', response.data);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
+  const fetchData = async (time_period) => {
+    try {
+      const token = localStorage.getItem('token');
+      console.log('Token:', token);
+
+      const response = await axios.get('http://localhost:8000/api/dashboard/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data && response.data.records) {
+        setUser(response.data.user);
+        setElapsedTimeChunks(response.data.elapsedTimeChunks || []);
+        setRecords(response.data.records || []);
+      } else {
+        console.error('Invalid response format:', response.data);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  useEffect(() => {
 
     fetchData();
   }, []);
@@ -132,6 +135,10 @@ function Dashboard() {
     return totalMilliseconds;
   };  
 
+  const handleTimePeriodClick = (time_period) => {
+    fetchData(time_period)
+  }
+
   return (
     <div className="dashboard-container">
       <h1>Combined Dashboard</h1>
@@ -144,24 +151,46 @@ function Dashboard() {
         </button>
       </div>
       <div className="dashboard-timer">
-        <p>Elapsed Time: {formatTime(elapsedTime)}</p>
+        <p><b>Elapsed Time:</b> {formatTime(elapsedTime)}</p>
         <ul>
           {(elapsedTimeChunks || []).map((chunk, index) => (
-            <li key={index}>Chunk {index + 1}: {chunk}</li>
+            <li key={index}><b>Chunk</b>  {index + 1}: {chunk}</li>
           ))}
         </ul>
-        <p>Total Time: {getTotalTime()}</p>
+        <p><b>Total Time:</b>  {getTotalTime()}</p>
       </div>
       <div className="dashboard-records">
-        <h2>Tracker Records</h2>
-        <ul>
-          {(records || []).map((record, index) => (
-            <li key={index}>
-              Start Time: {formatDateTime(record.start_time)}, End Time: {record.end_time ? formatDateTime(record.end_time) : 'Not available'}
-            </li>
-          ))}
-        </ul>
+          <h2>Tracker Records</h2>
+          <div className="dashboard-controls">
+            <button onClick={() => handleTimePeriodClick('day')} className="control-button">
+              Day
+            </button>
+            <button onClick={() => handleTimePeriodClick('week')} className="control-button">
+              Week
+            </button>
+            <button onClick={() => handleTimePeriodClick('month')} className="control-button">
+              Month
+            </button>
+          </div>
+          <table className="records-table">
+            <thead>
+              <tr>
+                <th>Start Time</th>
+                <th>End Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(records || []).map((record, index) => (
+              <tr key={index}>
+                <td>{formatDateTime(record.start_time)}</td>
+                <td>{record.end_time ? formatDateTime(record.end_time) : 'Not available'}</td>
+              </tr>
+              ))}
+            </tbody>
+          </table>
       </div>
+
+
     </div>
   );
 }
