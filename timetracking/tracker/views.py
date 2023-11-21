@@ -103,11 +103,13 @@ class DashboardView(APIView):
         time_period = request.query_params.get('time_period')
         queryset = TrackerRecord.objects.filter(user=user)
         if time_period == 'day':
-            # get records of day
+            # this is records of day
             today = timezone.now().date()
             queryset = queryset.filter(start_time__date=today)
+            # this is for week ... weekly records
         elif time_period == 'week':
             queryset = queryset.annotate(date=TruncWeek('start_time')).values('date').annotate(total_time=Sum('end_time')-Sum('start_time'))
+            #  this is for monthly records 
         elif time_period == 'month':
 
             queryset =  queryset.annotate(date=TruncMonth('start_time')).values('date').annotate(total_time=Sum('end_time')-Sum('start_time'))
