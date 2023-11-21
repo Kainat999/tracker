@@ -15,6 +15,14 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import SlidingToken
 from datetime import timedelta
 from rest_framework.views import APIView
+from django.db.models import Sum
+from django.db.models.functions import TruncDate, TruncWeek, TruncMonth
+from time import timezone
+from datetime import date
+
+
+
+
 
 
 class RegisterView(APIView):
@@ -92,7 +100,20 @@ class DashboardView(APIView):
     authentication_classes = [JWTAuthentication]
     def get(self, request):
         user = request.user
-        records = TrackerRecord.objects.filter(user=user).order_by('-start_time')
+        time_period = request.query_params.get('time_period')
+        queryset = TrackerRecord.objects.filter(user=user)
+        if time_period == 'day':
+            # get records of day
+            today = timezone.now().date()
+            queryset = queryset.filter(start_time__date=today)
+        elif time_period == 'week':
+            queryset = queryset.annotate(date=TruncWeek('start_time')).values('date').annotate(total_time=Sum('end_time')-Sum('start_time'))
+        elif time_period == 'month':
+
+            queryset =  queryset.annotate(date=TruncMonth('start_time')).values('date').annotate(total_time=Sum('end_time')-Sum('start_time'))
+
+
+        records = queryset.order_by('-start_time')
     
         elapsedTimeChunks = []
         for record in records:
